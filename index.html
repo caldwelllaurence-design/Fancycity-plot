@@ -1,0 +1,1342 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en"><head><title>FANCY CITY PLOT</title>
+<meta name="description" content="Animated tooltip. A dhtml tooltip that uses clipping animation to incrementally reveal and conceal the layer.">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"> 
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="viewport" content="width=1905, initial-scale=1">
+<link rel="stylesheet" href="Fancy City Plot_files/linker.css" type="text/css" media="all">
+<style type="text/css">
+#WzBoDy table, #WzBoDyI { width:100% !important; }
+div#rolltipDiv {
+  position:absolute; visibility:hidden;
+  left:0; top:0; z-index:1000;
+  width:390px; padding:3px; font-size:20px;   
+  background-color:#ffca37; border:1px solid rgb(45, 45, 248); 
+  }
+</style>
+<script src="Fancy City Plot_files/dw_misc.js" type="text/javascript"></script>
+<script type="text/javascript">
+// <![CDATA[
+/*************************************************************************
+  This code is from Dynamic Web Coding at dyn-web.com
+  Copyright 2002-5 by Sharon Paine 
+  See Terms of Use at www.dyn-web.com/bus/terms.html
+  regarding conditions under which you may use this code.
+  This notice must be retained in the code as is!
+*************************************************************************/
+
+function showRollTip(msg, e) {
+  if ( typeof RollTip == "undefined" || !RollTip.ready ) return;
+  RollTip.reveal(msg, e);
+}
+
+function hideRollTip() {
+  if ( typeof RollTip == "undefined" || !RollTip.ready ) return;
+  RollTip.conceal();
+}
+// messages for links
+
+// ]]>
+</script> </head>		 
+<body>
+<script> 
+var config = new Object();
+
+
+//===================  GLOBAL TOOPTIP CONFIGURATION  =========================//
+var  tt_Debug	= true		// false or true - recommended: false once you release your page to the public
+var  tt_Enabled	= true		// Allows to (temporarily) suppress tooltips, e.g. by providing the user with a button that sets this global variable to false
+var  TagsToTip	= true		// false or true - if true, the script is capable of converting HTML elements to tooltips
+
+// For each of the following config variables there exists a command, which is
+// just the variablename in uppercase, to be passed to Tip() or TagToTip() to
+// configure tooltips individually. Individual commands override global
+// configuration. Order of commands is arbitrary.
+// Example: onmouseover="Tip('Tooltip text', LEFT, true, BGCOLOR, '#FF9900', FADEIN, 400)"
+
+config. Above			= false 	// false or true - tooltip above mousepointer?
+config. BgColor 		= '#E4E7FF' // Background color
+config. BgImg			= ''		// Path to background image, none if empty string ''
+config. BorderColor 	= '#002299'
+config. BorderStyle 	= 'solid'	// Any permitted CSS value, but I recommend 'solid', 'dotted' or 'dashed'
+config. BorderWidth 	= 2
+config. CenterMouse 	= true 	// false or true - center the tip horizontally below (or above) the mousepointer
+config. ClickClose		= false 	// false or true - close tooltip if the user clicks somewhere
+config. CloseBtn		= false 	// false or true - closebutton in titlebar
+config. CloseBtnColors	= ['#990000', '#FFFFFF', '#DD3333', '#FFFFFF']	  // [Background, text, hovered background, hovered text] - use empty strings '' to inherit title colors
+config. CloseBtnText	= '&nbsp;X&nbsp;'	// Close button text (may also be an image tag)
+config. CopyContent		= true		// When converting a HTML element to a tooltip, copy only the element's content, rather than converting the element by its own
+config. Delay			= 100		// Time span in ms until tooltip shows up
+config. Duration		= 0 		// Time span in ms after which the tooltip disappears; 0 for infinite duration
+config. FadeIn			= 0 		// Fade-in duration in ms, e.g. 400; 0 for no animation
+config. FadeOut 		= 0
+config. FadeInterval	= 30		// Duration of each fade step in ms (recommended: 30) - shorter is smoother but causes more CPU-load
+config. Fix 			= null		// Fixated position - x- an y-oordinates in brackets, e.g. [210, 480], or null for no fixation
+config. FollowMouse		= false		// false or true - tooltip follows the mouse
+config. FontColor		= '#000044'
+config. FontFace		= 'Verdana,Geneva,sans-serif'
+config. FontSize		= '11pt' 	// E.g. '9pt' or '12px' - unit is mandatory
+config. FontWeight		= 'normal'	// 'normal' or 'bold';
+config. Left			= true 	// false or true - tooltip on the left of the mouse
+config. OffsetX 		= 10		// Horizontal offset of left-top corner from mousepointer
+config. OffsetY 		= 10 		// Vertical offset
+config. Opacity 		= 100		// Integer between 0 and 100 - opacity of tooltip in percent
+config. Padding 		= 2 		// Spacing between border and content
+config. Shadow			= false 	// false or true
+config. ShadowColor 	= '#C0C0C0'
+config. ShadowWidth 	= 5
+config. Sticky			= false 	// Do NOT hide tooltip on mouseout? false or true
+config. TextAlign		= 'left'	// 'left', 'right' or 'justify'
+config. Title			= ''		// Default title text applied to all tips (no default title: empty string '')
+config. TitleAlign		= 'Center'	// 'left' or 'right' - text alignment inside the title bar
+config. TitleBgColor	= ''		// If empty string '', BorderColor will be used
+config. TitleFontColor	= '#ffffff'	// Color of title text - if '', BgColor (of tooltip body) will be used
+config. TitleFontFace	= 'bold'		// If '' use FontFace (boldified)
+config. TitleFontSize	= '16pt'		// If '' use FontSize
+config. Width			= 0 		// Tooltip width; 0 for automatic adaption to tooltip content
+//=======  END OF TOOLTIP CONFIG, DO NOT CHANGE ANYTHING BELOW  ==============//
+
+
+
+
+//======================  PUBLIC  ============================================//
+function Tip()
+
+
+
+{
+	tt_Tip(arguments, null);
+}
+function TagToTip()
+{
+	if(TagsToTip)
+	{
+		var t2t = tt_GetElt(arguments[0]);
+		if(t2t)
+			tt_Tip(arguments, t2t);
+	}
+}
+
+//==================  PUBLIC EXTENSION API	==================================//
+// Extension eventhandlers currently supported:
+// OnLoadConfig, OnCreateContentString, OnSubDivsCreated, OnShow, OnMoveBefore,
+// OnMoveAfter, OnHideInit, OnHide, OnKill
+
+var tt_aElt = new Array(10), // Container DIV, outer title & body DIVs, inner title & body TDs, closebutton SPAN, shadow DIVs, and IFRAME to cover windowed elements in IE
+tt_aV = new Array(),	// Caches and enumerates config data for currently active tooltip
+tt_sContent,			// Inner tooltip text or HTML
+tt_scrlX = 0, tt_scrlY = 0,
+tt_musX, tt_musY,
+tt_over,
+tt_x, tt_y, tt_w, tt_h; // Position, width and height of currently displayed tooltip
+
+function tt_Extension()
+{
+	tt_ExtCmdEnum();
+	tt_aExt[tt_aExt.length] = this;
+	return this;
+}
+function tt_SetTipPos(x, y)
+{
+	var css = tt_aElt[0].style;
+
+	tt_x = x;
+	tt_y = y;
+	css.left = x + "px";
+	css.top = y + "px";
+	if(tt_ie56)
+	{
+		var ifrm = tt_aElt[tt_aElt.length - 1];
+		if(ifrm)
+		{
+			ifrm.style.left = css.left;
+			ifrm.style.top = css.top;
+		}
+	}
+}
+function tt_Hide()
+{
+	if(tt_db && tt_iState)
+	{
+		if(tt_iState & 0x2)
+		{
+			tt_aElt[0].style.visibility = "hidden";
+			tt_ExtCallFncs(0, "Hide");
+		}
+		tt_tShow.EndTimer();
+		tt_tHide.EndTimer();
+		tt_tDurt.EndTimer();
+		tt_tFade.EndTimer();
+		if(!tt_op && !tt_ie)
+		{
+			tt_tWaitMov.EndTimer();
+			tt_bWait = false;
+		}
+		if(tt_aV[CLICKCLOSE])
+			tt_RemEvtFnc(document, "mouseup", tt_HideInit);
+		tt_AddRemOutFnc(false);
+		tt_ExtCallFncs(0, "Kill");
+		// In case of a TagToTip tooltip, hide converted DOM node and
+		// re-insert it into document
+		if(tt_t2t && !tt_aV[COPYCONTENT])
+		{
+			tt_t2t.style.display = "none";
+			tt_MovDomNode(tt_t2t, tt_aElt[6], tt_t2tDad);
+		}
+		tt_iState = 0;
+		tt_over = null;
+		tt_ResetMainDiv();
+		if(tt_aElt[tt_aElt.length - 1])
+			tt_aElt[tt_aElt.length - 1].style.display = "none";
+	}
+}
+function tt_GetElt(id)
+{
+	return(document.getElementById ? document.getElementById(id)
+			: document.all ? document.all[id]
+			: null);
+}
+function tt_GetDivW(el)
+{
+	return(el ? (el.offsetWidth || el.style.pixelWidth || 0) : 0);
+}
+function tt_GetDivH(el)
+{
+	return(el ? (el.offsetHeight || el.style.pixelHeight || 0) : 0);
+}
+function tt_GetScrollX()
+{
+	return(window.pageXOffset || (tt_db ? (tt_db.scrollLeft || 0) : 0));
+}
+function tt_GetScrollY()
+{
+	return(window.pageYOffset || (tt_db ? (tt_db.scrollTop || 0) : 0));
+}
+function tt_GetClientW()
+{
+	return(document.body && (typeof(document.body.clientWidth) != tt_u) ? document.body.clientWidth
+			: (typeof(window.innerWidth) != tt_u) ? window.innerWidth
+			: tt_db ? (tt_db.clientWidth || 0)
+			: 0);
+}
+function tt_GetClientH()
+{
+	// Exactly this order seems to yield correct values in all major browsers
+	return(document.body && (typeof(document.body.clientHeight) != tt_u) ? document.body.clientHeight
+			: (typeof(window.innerHeight) != tt_u) ? window.innerHeight
+			: tt_db ? (tt_db.clientHeight || 0)
+			: 0);
+}
+function tt_GetEvtX(e)
+{
+	return (e ? ((typeof(e.pageX) != tt_u) ? e.pageX : (e.clientX + tt_scrlX)) : 0);
+}
+function tt_GetEvtY(e)
+{
+	return (e ? ((typeof(e.pageY) != tt_u) ? e.pageY : (e.clientY + tt_scrlY)) : 0);
+}
+function tt_AddEvtFnc(el, sEvt, PFnc)
+{
+	if(el)
+	{
+		if(el.addEventListener)
+			el.addEventListener(sEvt, PFnc, false);
+		else
+			el.attachEvent("on" + sEvt, PFnc);
+	}
+}
+function tt_RemEvtFnc(el, sEvt, PFnc)
+{
+	if(el)
+	{
+		if(el.removeEventListener)
+			el.removeEventListener(sEvt, PFnc, false);
+		else
+			el.detachEvent("on" + sEvt, PFnc);
+	}
+}
+
+//======================  PRIVATE  ===========================================//
+var tt_aExt = new Array(),	// Array of extension objects
+
+tt_db, tt_op, tt_ie, tt_ie56, tt_bBoxOld,	// Browser flags
+tt_body,
+tt_flagOpa, 			// Opacity support: 1=IE, 2=Khtml, 3=KHTML, 4=Moz, 5=W3C
+tt_maxPosX, tt_maxPosY,
+tt_iState = 0,			// Tooltip active |= 1, shown |= 2, move with mouse |= 4
+tt_opa, 				// Currently applied opacity
+tt_bJmpVert,			// Tip above mouse (or ABOVE tip below mouse)
+tt_t2t, tt_t2tDad,		// Tag converted to tip, and its parent element in the document
+tt_elDeHref,			// The tag from which Opera has removed the href attribute
+// Timer
+tt_tShow = new Number(0), tt_tHide = new Number(0), tt_tDurt = new Number(0),
+tt_tFade = new Number(0), tt_tWaitMov = new Number(0),
+tt_bWait = false,
+tt_u = "undefined";
+
+
+function tt_Init()
+{
+	tt_MkCmdEnum();
+	// Send old browsers instantly to hell
+	if(!tt_Browser() || !tt_MkMainDiv())
+		return;
+	tt_IsW3cBox();
+	tt_OpaSupport();
+	tt_AddEvtFnc(document, "mousemove", tt_Move);
+	// In Debug mode we search for TagToTip() calls in order to notify
+	// the user if they've forgotten to set the TagsToTip config flag
+	if(TagsToTip || tt_Debug)
+		tt_SetOnloadFnc();
+	tt_AddEvtFnc(window, "scroll",
+		function()
+		{
+			tt_scrlX = tt_GetScrollX();
+			tt_scrlY = tt_GetScrollY();
+			if(tt_iState && !(tt_aV[STICKY] && (tt_iState & 2)))
+				tt_HideInit();
+		} );
+	// Ensure the tip be hidden when the page unloads
+	tt_AddEvtFnc(window, "unload", tt_Hide);
+	tt_Hide();
+}
+// Creates command names by translating config variable names to upper case
+function tt_MkCmdEnum()
+{
+	var n = 0;
+	for(var i in config)
+		eval("window." + i.toString().toUpperCase() + " = " + n++);
+	tt_aV.length = n;
+}
+function tt_Browser()
+{
+	var n, nv, n6, w3c;
+
+	n = navigator.userAgent.toLowerCase(),
+	nv = navigator.appVersion;
+	tt_op = (document.defaultView && typeof(eval("w" + "indow" + "." + "o" + "p" + "er" + "a")) != tt_u);
+	tt_ie = n.indexOf("msie") != -1 && document.all && !tt_op;
+	if(tt_ie)
+	{
+		var ieOld = (!document.compatMode || document.compatMode == "BackCompat");
+		tt_db = !ieOld ? document.documentElement : (document.body || null);
+		if(tt_db)
+			tt_ie56 = parseFloat(nv.substring(nv.indexOf("MSIE") + 5)) >= 5.5
+					&& typeof document.body.style.maxHeight == tt_u;
+	}
+	else
+	{
+		tt_db = document.documentElement || document.body ||
+				(document.getElementsByTagName ? document.getElementsByTagName("body")[0]
+				: null);
+		if(!tt_op)
+		{
+			n6 = document.defaultView && typeof document.defaultView.getComputedStyle != tt_u;
+			w3c = !n6 && document.getElementById;
+		}
+	}
+	tt_body = (document.getElementsByTagName ? document.getElementsByTagName("body")[0]
+				: (document.body || null));
+	if(tt_ie || n6 || tt_op || w3c)
+	{
+		if(tt_body && tt_db)
+		{
+			if(document.attachEvent || document.addEventListener)
+				return true;
+		}
+		else
+			tt_Err("wz_tooltip.js must be included INSIDE the body section,"
+					+ " immediately after the opening <body> tag.");
+	}
+	tt_db = null;
+	return false;
+}
+function tt_MkMainDiv()
+{
+	// Create the tooltip DIV
+	if(tt_body.insertAdjacentHTML)
+		tt_body.insertAdjacentHTML("afterBegin", tt_MkMainDivHtm());
+	else if(typeof tt_body.innerHTML != tt_u && document.createElement && tt_body.appendChild)
+		tt_body.appendChild(tt_MkMainDivDom());
+	// FireFox Alzheimer bug
+	if(window.tt_GetMainDivRefs && tt_GetMainDivRefs())
+		return true;
+	tt_db = null;
+	return false;
+}
+function tt_MkMainDivHtm()
+{
+	return('<div id="WzTtDiV"></div>' +
+			(tt_ie56 ? ('<iframe id="WzTtIfRm" src="javascript:false" scrolling="no" frameborder="0" style="filter:Alpha(opacity=0);position:absolute;top:0px;left:0px;display:none;"></iframe>')
+			: ''));
+}
+function tt_MkMainDivDom()
+{
+	var el = document.createElement("div");
+	if(el)
+		el.id = "WzTtDiV";
+	return el;
+}
+function tt_GetMainDivRefs()
+{
+	tt_aElt[0] = tt_GetElt("WzTtDiV");
+	if(tt_ie56 && tt_aElt[0])
+	{
+		tt_aElt[tt_aElt.length - 1] = tt_GetElt("WzTtIfRm");
+		if(!tt_aElt[tt_aElt.length - 1])
+			tt_aElt[0] = null;
+	}
+	if(tt_aElt[0])
+	{
+		var css = tt_aElt[0].style;
+
+		css.visibility = "hidden";
+		css.position = "absolute";
+		css.overflow = "hidden";
+		return true;
+	}
+	return false;
+}
+function tt_ResetMainDiv()
+{
+	var w = (window.screen && screen.width) ? screen.width : 10000;
+
+	tt_SetTipPos(-w, 0);
+	tt_aElt[0].innerHTML = "";
+	tt_aElt[0].style.width = (w - 1) + "px";
+}
+function tt_IsW3cBox()
+{
+	var css = tt_aElt[0].style;
+
+	css.padding = "10px";
+	css.width = "40px";
+	tt_bBoxOld = (tt_GetDivW(tt_aElt[0]) == 40);
+	css.padding = "0px";
+	tt_ResetMainDiv();
+}
+function tt_OpaSupport()
+{
+	var css = tt_body.style;
+
+	tt_flagOpa = (typeof(css.filter) != tt_u) ? 1
+				: (typeof(css.KhtmlOpacity) != tt_u) ? 2
+				: (typeof(css.KHTMLOpacity) != tt_u) ? 3
+				: (typeof(css.MozOpacity) != tt_u) ? 4
+				: (typeof(css.opacity) != tt_u) ? 5
+				: 0;
+}
+// Ported from http://dean.edwards.name/weblog/2006/06/again/
+// (Dean Edwards et al.)
+function tt_SetOnloadFnc()
+{
+	tt_AddEvtFnc(document, "DOMContentLoaded", tt_HideSrcTags);
+	tt_AddEvtFnc(window, "load", tt_HideSrcTags);
+	if(tt_body.attachEvent)
+		tt_body.attachEvent("onreadystatechange",
+			function() {
+				if(tt_body.readyState == "complete")
+					tt_HideSrcTags();
+			} );
+	if(/WebKit|KHTML/i.test(navigator.userAgent))
+	{
+		var t = setInterval(function() {
+					if(/loaded|complete/.test(document.readyState))
+					{
+						clearInterval(t);
+						tt_HideSrcTags();
+					}
+				}, 10);
+	}
+}
+function tt_HideSrcTags()
+{
+	if(!window.tt_HideSrcTags || window.tt_HideSrcTags.done)
+		return;
+	window.tt_HideSrcTags.done = true;
+	if(!tt_HideSrcTagsRecurs(tt_body))
+		tt_Err("To enable the capability to convert HTML elements to tooltips,"
+				+ " you must set TagsToTip in the global tooltip configuration"
+				+ " to true.");
+}
+function tt_HideSrcTagsRecurs(dad)
+{
+	var a, ovr, asT2t;
+
+	// Walk the DOM tree for tags that have an onmouseover attribute
+	// containing a TagToTip('...') call.
+	// (.childNodes first since .children is bugous in Safari)
+	a = dad.childNodes || dad.children || null;
+	for(var i = a ? a.length : 0; i;)
+	{--i;
+		if(!tt_HideSrcTagsRecurs(a[i]))
+			return false;
+		ovr = a[i].getAttribute ? a[i].getAttribute("onmouseover")
+				: (typeof a[i].onmouseover == "function") ? a[i].onmouseover
+				: null;
+		if(ovr)
+		{
+			asT2t = ovr.toString().match(/TagToTip\s*\(\s*'[^'.]+'\s*[\),]/);
+			if(asT2t && asT2t.length)
+			{
+				if(!tt_HideSrcTag(asT2t[0]))
+					return false;
+			}
+		}
+	}
+	return true;
+}
+function tt_HideSrcTag(sT2t)
+{
+	var id, el;
+
+	// The ID passed to the found TagToTip() call identifies an HTML element
+	// to be converted to a tooltip, so hide that element
+	id = sT2t.replace(/.+'([^'.]+)'.+/, "$1");
+	el = tt_GetElt(id);
+	if(el)
+	{
+		if(tt_Debug && !TagsToTip)
+			return false;
+		else
+			el.style.display = "none";
+	}
+	else
+		tt_Err("Invalid ID\n'" + id + "'\npassed to TagToTip()."
+				+ " There exists no HTML element with that ID.");
+	return true;
+}
+function tt_Tip(arg, t2t)
+{
+	if(!tt_db)
+		return;
+	if(tt_iState)
+		tt_Hide();
+	if(!tt_Enabled)
+		return;
+	tt_t2t = t2t;
+	if(!tt_ReadCmds(arg))
+		return;
+	tt_iState = 0x1 | 0x4;
+	tt_AdaptConfig1();
+	tt_MkTipContent(arg);
+	tt_MkTipSubDivs();
+	tt_FormatTip();
+	tt_bJmpVert = false;
+	tt_maxPosX = tt_GetClientW() + tt_scrlX - tt_w - 1;
+	tt_maxPosY = tt_GetClientH() + tt_scrlY - tt_h - 1;
+	tt_AdaptConfig2();
+	// We must fake the first mousemove in order to ensure the tip
+	// be immediately shown and positioned
+	tt_Move();
+	tt_ShowInit();
+}
+function tt_ReadCmds(a)
+{
+	var i;
+
+	// First load the global config values, to initialize also values
+	// for which no command has been passed
+	i = 0;
+	for(var j in config)
+		tt_aV[i++] = config[j];
+	// Then replace each cached config value for which a command has been
+	// passed (ensure the # of command args plus value args be even)
+	if(a.length & 1)
+	{
+		for(i = a.length - 1; i > 0; i -= 2)
+			tt_aV[a[i - 1]] = a[i];
+		return true;
+	}
+	tt_Err("Incorrect call of Tip() or TagToTip().\n"
+			+ "Each command must be followed by a value.");
+	return false;
+}
+function tt_AdaptConfig1()
+{
+	tt_ExtCallFncs(0, "LoadConfig");
+	// Inherit unspecified title formattings from body
+	if(!tt_aV[TITLEBGCOLOR].length)
+		tt_aV[TITLEBGCOLOR] = tt_aV[BORDERCOLOR];
+	if(!tt_aV[TITLEFONTCOLOR].length)
+		tt_aV[TITLEFONTCOLOR] = tt_aV[BGCOLOR];
+	if(!tt_aV[TITLEFONTFACE].length)
+		tt_aV[TITLEFONTFACE] = tt_aV[FONTFACE];
+	if(!tt_aV[TITLEFONTSIZE].length)
+		tt_aV[TITLEFONTSIZE] = tt_aV[FONTSIZE];
+	if(tt_aV[CLOSEBTN])
+	{
+		// Use title colors for non-specified closebutton colors
+		if(!tt_aV[CLOSEBTNCOLORS])
+			tt_aV[CLOSEBTNCOLORS] = new Array("", "", "", "");
+		for(var i = 4; i;)
+		{--i;
+			if(!tt_aV[CLOSEBTNCOLORS][i].length)
+				tt_aV[CLOSEBTNCOLORS][i] = (i & 1) ? tt_aV[TITLEFONTCOLOR] : tt_aV[TITLEBGCOLOR];
+		}
+		// Enforce titlebar be shown
+		if(!tt_aV[TITLE].length)
+			tt_aV[TITLE] = " ";
+	}
+	// Circumvents broken display of images and fade-in flicker in Geckos < 1.8
+	if(tt_aV[OPACITY] == 100 && typeof tt_aElt[0].style.MozOpacity != tt_u && !Array.every)
+		tt_aV[OPACITY] = 99;
+	// Smartly shorten the delay for fade-in tooltips
+	if(tt_aV[FADEIN] && tt_flagOpa && tt_aV[DELAY] > 100)
+		tt_aV[DELAY] = Math.max(tt_aV[DELAY] - tt_aV[FADEIN], 100);
+}
+function tt_AdaptConfig2()
+{
+	if(tt_aV[CENTERMOUSE])
+		tt_aV[OFFSETX] -= ((tt_w - (tt_aV[SHADOW] ? tt_aV[SHADOWWIDTH] : 0)) >> 1);
+}
+// Expose content globally so extensions can modify it
+function tt_MkTipContent(a)
+{
+	if(tt_t2t)
+	{
+		if(tt_aV[COPYCONTENT])
+			tt_sContent = tt_t2t.innerHTML;
+		else
+			tt_sContent = "";
+	}
+	else
+		tt_sContent = a[0];
+	tt_ExtCallFncs(0, "CreateContentString");
+}
+function tt_MkTipSubDivs()
+{
+	var sCss = 'position:relative;margin:0px;padding:0px;border-width:0px;left:0px;top:0px;line-height:normal;width:auto;',
+	sTbTrTd = ' cellspacing=0 cellpadding=0 border=0 style="' + sCss + '"><tbody style="' + sCss + '"><tr><td ';
+
+	tt_aElt[0].innerHTML =
+		(''
+		+ (tt_aV[TITLE].length ?
+			('<div id="WzTiTl" style="position:relative;z-index:1;">'
+			+ '<table id="WzTiTlTb"' + sTbTrTd + 'id="WzTiTlI" style="' + sCss + '">'
+			+ tt_aV[TITLE]
+			+ '</td>'
+			+ (tt_aV[CLOSEBTN] ?
+				('<td align="right" style="' + sCss
+				+ 'text-align:right;">'
+				+ '<span id="WzClOsE" style="padding-left:2px;padding-right:2px;'
+				+ 'cursor:' + (tt_ie ? 'hand' : 'pointer')
+				+ ';" onmouseover="tt_OnCloseBtnOver(1)" onmouseout="tt_OnCloseBtnOver(0)" onclick="tt_HideInit()">'
+				+ tt_aV[CLOSEBTNTEXT]
+				+ '</span></td>')
+				: '')
+			+ '</tr></tbody></table></div>')
+			: '')
+		+ '<div id="WzBoDy" style="position:relative;z-index:0;">'
+		+ '<table' + sTbTrTd + 'id="WzBoDyI" style="' + sCss + '">'
+		+ tt_sContent
+		+ '</td></tr></tbody></table></div>'
+		+ (tt_aV[SHADOW]
+			? ('<div id="WzTtShDwR" style="position:absolute;overflow:hidden;"></div>'
+				+ '<div id="WzTtShDwB" style="position:relative;overflow:hidden;"></div>')
+			: '')
+		);
+	tt_GetSubDivRefs();
+	// Convert DOM node to tip
+	if(tt_t2t && !tt_aV[COPYCONTENT])
+	{
+		// Store the tag's parent element so we can restore that DOM branch
+		// once the tooltip is hidden
+		tt_t2tDad = tt_t2t.parentNode || tt_t2t.parentElement || tt_t2t.offsetParent || null;
+		if(tt_t2tDad)
+		{
+			tt_MovDomNode(tt_t2t, tt_t2tDad, tt_aElt[6]);
+			tt_t2t.style.display = "block";
+		}
+	}
+	tt_ExtCallFncs(0, "SubDivsCreated");
+}
+function tt_GetSubDivRefs()
+{
+	var aId = new Array("WzTiTl", "WzTiTlTb", "WzTiTlI", "WzClOsE", "WzBoDy", "WzBoDyI", "WzTtShDwB", "WzTtShDwR");
+
+	for(var i = aId.length; i; --i)
+		tt_aElt[i] = tt_GetElt(aId[i - 1]);
+}
+function tt_FormatTip()
+{
+	var css, w, iOffY, iOffSh;
+
+	//--------- Title DIV ----------
+	if(tt_aV[TITLE].length)
+	{
+		css = tt_aElt[1].style;
+		css.background = tt_aV[TITLEBGCOLOR];
+		css.paddingTop = (tt_aV[CLOSEBTN] ? 2 : 0) + "px";
+		css.paddingBottom = "1px";
+		css.paddingLeft = css.paddingRight = tt_aV[PADDING] + "px";
+		css = tt_aElt[3].style;
+		css.color = tt_aV[TITLEFONTCOLOR];
+		css.fontFamily = tt_aV[TITLEFONTFACE];
+		css.fontSize = tt_aV[TITLEFONTSIZE];
+		css.fontWeight = "bold";
+		css.textAlign = tt_aV[TITLEALIGN];
+		// Close button DIV
+		if(tt_aElt[4])
+		{
+			css.paddingRight = (tt_aV[PADDING] << 1) + "px";
+			css = tt_aElt[4].style;
+			css.background = tt_aV[CLOSEBTNCOLORS][0];
+			css.color = tt_aV[CLOSEBTNCOLORS][1];
+			css.fontFamily = tt_aV[TITLEFONTFACE];
+			css.fontSize = tt_aV[TITLEFONTSIZE];
+			css.fontWeight = "bold";
+		}
+		if(tt_aV[WIDTH] > 0)
+			tt_w = tt_aV[WIDTH] + ((tt_aV[PADDING] + tt_aV[BORDERWIDTH]) << 1);
+		else
+		{
+			tt_w = tt_GetDivW(tt_aElt[3]) + tt_GetDivW(tt_aElt[4]);
+			// Some spacing between title DIV and closebutton
+			if(tt_aElt[4])
+				tt_w += tt_aV[PADDING];
+		}
+		// Ensure the top border of the body DIV be covered by the title DIV
+		iOffY = -tt_aV[BORDERWIDTH];
+	}
+	else
+	{
+		tt_w = 0;
+		iOffY = 0;
+	}
+
+	//-------- Body DIV ------------
+	css = tt_aElt[5].style;
+	css.top = iOffY + "px";
+	if(tt_aV[BORDERWIDTH])
+	{
+		css.borderColor = tt_aV[BORDERCOLOR];
+		css.borderStyle = tt_aV[BORDERSTYLE];
+		css.borderWidth = tt_aV[BORDERWIDTH] + "px";
+	}
+	if(tt_aV[BGCOLOR].length)
+		css.background = tt_aV[BGCOLOR];
+	if(tt_aV[BGIMG].length)
+		css.backgroundImage = "url(" + tt_aV[BGIMG] + ")";
+	css.padding = tt_aV[PADDING] + "px";
+	css.textAlign = tt_aV[TEXTALIGN];
+	// TD inside body DIV
+	css = tt_aElt[6].style;
+	css.color = tt_aV[FONTCOLOR];
+	css.fontFamily = tt_aV[FONTFACE];
+	css.fontSize = tt_aV[FONTSIZE];
+	css.fontWeight = tt_aV[FONTWEIGHT];
+	css.background = "";
+	css.textAlign = tt_aV[TEXTALIGN];
+	if(tt_aV[WIDTH] > 0)
+		w = tt_aV[WIDTH] + ((tt_aV[PADDING] + tt_aV[BORDERWIDTH]) << 1);
+	else
+		// We measure the width of the body's inner TD, because some browsers
+		// expand the width of the container and outer body DIV to 100%
+		w = tt_GetDivW(tt_aElt[6]) + ((tt_aV[PADDING] + tt_aV[BORDERWIDTH]) << 1);
+	if(w > tt_w)
+		tt_w = w;
+
+	//--------- Shadow DIVs ------------
+	if(tt_aV[SHADOW])
+	{
+		tt_w += tt_aV[SHADOWWIDTH];
+		iOffSh = Math.floor((tt_aV[SHADOWWIDTH] * 4) / 3);
+		// Bottom shadow
+		css = tt_aElt[7].style;
+		css.top = iOffY + "px";
+		css.left = iOffSh + "px";
+		css.width = (tt_w - iOffSh - tt_aV[SHADOWWIDTH]) + "px";
+		css.height = tt_aV[SHADOWWIDTH] + "px";
+		css.background = tt_aV[SHADOWCOLOR];
+		// Right shadow
+		css = tt_aElt[8].style;
+		css.top = iOffSh + "px";
+		css.left = (tt_w - tt_aV[SHADOWWIDTH]) + "px";
+		css.width = tt_aV[SHADOWWIDTH] + "px";
+		css.background = tt_aV[SHADOWCOLOR];
+	}
+	else
+		iOffSh = 0;
+
+	//-------- Container DIV -------
+	tt_SetTipOpa(tt_aV[FADEIN] ? 0 : tt_aV[OPACITY]);
+	tt_FixSize(iOffY, iOffSh);
+}
+// Fixate the size so it can't dynamically change while the tooltip is moving.
+function tt_FixSize(iOffY, iOffSh)
+{
+	var wIn, wOut, i;
+
+	tt_aElt[0].style.width = tt_w + "px";
+	tt_aElt[0].style.pixelWidth = tt_w;
+	wOut = tt_w - ((tt_aV[SHADOW]) ? tt_aV[SHADOWWIDTH] : 0);
+	// Body
+	wIn = wOut;
+	if(!tt_bBoxOld)
+		wIn -= ((tt_aV[PADDING] + tt_aV[BORDERWIDTH]) << 1);
+	tt_aElt[5].style.width = wIn + "px";
+	// Title
+	if(tt_aElt[1])
+	{
+		wIn = wOut - (tt_aV[PADDING] << 1);
+		if(!tt_bBoxOld)
+			wOut = wIn;
+		tt_aElt[1].style.width = wOut + "px";
+		tt_aElt[2].style.width = wIn + "px";
+	}
+	tt_h = tt_GetDivH(tt_aElt[0]) + iOffY;
+	// Right shadow
+	if(tt_aElt[8])
+		tt_aElt[8].style.height = (tt_h - iOffSh) + "px";
+	i = tt_aElt.length - 1;
+	if(tt_aElt[i])
+	{
+		tt_aElt[i].style.width = tt_w + "px";
+		tt_aElt[i].style.height = tt_h + "px";
+	}
+}
+function tt_DeAlt(el)
+{
+	var aKid;
+
+	if(el.alt)
+		el.alt = "";
+	if(el.title)
+		el.title = "";
+	aKid = el.childNodes || el.children || null;
+	if(aKid)
+	{
+		for(var i = aKid.length; i;)
+			tt_DeAlt(aKid[--i]);
+	}
+}
+// This hack removes the annoying native tooltips over links in Opera
+function tt_OpDeHref(el)
+{
+	if(!tt_op)
+		return;
+	if(tt_elDeHref)
+		tt_OpReHref();
+	while(el)
+	{
+		if(el.hasAttribute("href"))
+		{
+			el.t_href = el.getAttribute("href");
+			el.t_stats = window.status;
+			el.removeAttribute("href");
+			el.style.cursor = "hand";
+			tt_AddEvtFnc(el, "mousedown", tt_OpReHref);
+			window.status = el.t_href;
+			tt_elDeHref = el;
+			break;
+
+		}
+		el = el.parentElement;
+	}
+}
+function tt_ShowInit()
+{
+	tt_tShow.Timer("tt_Show()", tt_aV[DELAY], true);
+	if(tt_aV[CLICKCLOSE])
+		tt_AddEvtFnc(document, "mouseup", tt_HideInit);
+}
+function tt_OverInit(e)
+{
+	tt_over = e.target || e.srcElement;
+	tt_DeAlt(tt_over);
+	tt_OpDeHref(tt_over);
+	tt_AddRemOutFnc(true);
+}
+function tt_Show()
+{
+	var css = tt_aElt[0].style;
+
+	// Override the z-index of the topmost wz_dragdrop.js D&D item
+	css.zIndex = Math.max((window.dd && dd.z) ? (dd.z + 2) : 0, 1010);
+	if(tt_aV[STICKY] || !tt_aV[FOLLOWMOUSE])
+		tt_iState &= ~0x4;
+	if(tt_aV[DURATION] > 0)
+		tt_tDurt.Timer("tt_HideInit()", tt_aV[DURATION], true);
+	tt_ExtCallFncs(0, "Show")
+	css.visibility = "visible";
+	tt_iState |= 0x2;
+	if(tt_aV[FADEIN])
+		tt_Fade(0, 0, tt_aV[OPACITY], Math.round(tt_aV[FADEIN] / tt_aV[FADEINTERVAL]));
+	tt_ShowIfrm();
+}
+function tt_ShowIfrm()
+{
+	if(tt_ie56)
+	{
+		var ifrm = tt_aElt[tt_aElt.length - 1];
+		if(ifrm)
+		{
+			var css = ifrm.style;
+			css.zIndex = tt_aElt[0].style.zIndex - 1;
+			css.display = "block";
+		}
+	}
+}
+function tt_Move(e)
+{
+	e = window.event || e;
+	if(e)
+	{
+		tt_musX = tt_GetEvtX(e);
+		tt_musY = tt_GetEvtY(e);
+	}
+	if(tt_iState)
+	{
+		if(!tt_over && e)
+			tt_OverInit(e);
+		if(tt_iState & 0x4)
+		{
+			// Protect some browsers against jam of mousemove events
+			if(!tt_op && !tt_ie)
+			{
+				if(tt_bWait)
+					return;
+				tt_bWait = true;
+				tt_tWaitMov.Timer("tt_bWait = false;", 1, true);
+			}
+			if(tt_aV[FIX])
+			{
+				tt_iState &= ~0x4;
+				tt_SetTipPos(tt_aV[FIX][0], tt_aV[FIX][1]);
+			}
+			else if(!tt_ExtCallFncs(e, "MoveBefore"))
+				tt_SetTipPos(tt_PosX(), tt_PosY());
+			tt_ExtCallFncs([tt_musX, tt_musY], "MoveAfter")
+		}
+	}
+}
+function tt_PosX()
+{
+	var x;
+
+	x = tt_musX;
+	if(tt_aV[LEFT])
+		x -= tt_w + tt_aV[OFFSETX] - (tt_aV[SHADOW] ? tt_aV[SHADOWWIDTH] : 0);
+	else
+		x += tt_aV[OFFSETX];
+	// Prevent tip from extending past right/left clientarea boundary
+	if(x > tt_maxPosX)
+		x = tt_maxPosX;
+	return((x < tt_scrlX) ? tt_scrlX : x);
+}
+function tt_PosY()
+{
+	var y;
+
+	// Apply some hysteresis after the tip has snapped to the other side of the
+	// mouse. In case of insufficient space above and below the mouse, we place
+	// the tip below.
+	if(tt_aV[ABOVE] && (!tt_bJmpVert || tt_CalcPosYAbove() >= tt_scrlY + 16))
+		y = tt_DoPosYAbove();
+	else if(!tt_aV[ABOVE] && tt_bJmpVert && tt_CalcPosYBelow() > tt_maxPosY - 16)
+		y = tt_DoPosYAbove();
+	else
+		y = tt_DoPosYBelow();
+	// Snap to other side of mouse if tip would extend past window boundary
+	if(y > tt_maxPosY)
+		y = tt_DoPosYAbove();
+	if(y < tt_scrlY)
+		y = tt_DoPosYBelow();
+	return y;
+}
+function tt_DoPosYBelow()
+{
+	tt_bJmpVert = tt_aV[ABOVE];
+	return tt_CalcPosYBelow();
+}
+function tt_DoPosYAbove()
+{
+	tt_bJmpVert = !tt_aV[ABOVE];
+	return tt_CalcPosYAbove();
+}
+function tt_CalcPosYBelow()
+{
+	return(tt_musY + tt_aV[OFFSETY]);
+}
+function tt_CalcPosYAbove()
+{
+	var dy = tt_aV[OFFSETY] - (tt_aV[SHADOW] ? tt_aV[SHADOWWIDTH] : 0);
+	if(tt_aV[OFFSETY] > 0 && dy <= 0)
+		dy = 1;
+	return(tt_musY - tt_h - dy);
+}
+function tt_OnOut()
+{
+	tt_AddRemOutFnc(false);
+	if(!(tt_aV[STICKY] && (tt_iState & 0x2)))
+		tt_HideInit();
+}
+function tt_HideInit()
+{
+	tt_ExtCallFncs(0, "HideInit");
+	tt_iState &= ~0x4;
+	if(tt_flagOpa && tt_aV[FADEOUT])
+	{
+		tt_tFade.EndTimer();
+		if(tt_opa)
+		{
+			var n = Math.round(tt_aV[FADEOUT] / (tt_aV[FADEINTERVAL] * (tt_aV[OPACITY] / tt_opa)));
+			tt_Fade(tt_opa, tt_opa, 0, n);
+			return;
+		}
+	}
+	tt_tHide.Timer("tt_Hide();", 1, false);
+}
+function tt_OpReHref()
+{
+	if(tt_elDeHref)
+	{
+		tt_elDeHref.setAttribute("href", tt_elDeHref.t_href);
+		tt_RemEvtFnc(tt_elDeHref, "mousedown", tt_OpReHref);
+		window.status = tt_elDeHref.t_stats;
+		tt_elDeHref = null;
+	}
+}
+function tt_Fade(a, now, z, n)
+{
+	if(n)
+	{
+		now += Math.round((z - now) / n);
+		if((z > a) ? (now >= z) : (now <= z))
+			now = z;
+		else
+			tt_tFade.Timer("tt_Fade("
+							+ a + "," + now + "," + z + "," + (n - 1)
+							+ ")",
+							tt_aV[FADEINTERVAL],
+							true);
+	}
+	now ? tt_SetTipOpa(now) : tt_Hide();
+}
+// To circumvent the opacity nesting flaws of IE, we set the opacity
+// for each sub-DIV separately, rather than for the container DIV.
+function tt_SetTipOpa(opa)
+{
+	tt_SetOpa(tt_aElt[5].style, opa);
+	if(tt_aElt[1])
+		tt_SetOpa(tt_aElt[1].style, opa);
+	if(tt_aV[SHADOW])
+	{
+		opa = Math.round(opa * 0.8);
+		tt_SetOpa(tt_aElt[7].style, opa);
+		tt_SetOpa(tt_aElt[8].style, opa);
+	}
+}
+function tt_OnCloseBtnOver(iOver)
+{
+	var css = tt_aElt[4].style;
+
+	iOver <<= 1;
+	css.background = tt_aV[CLOSEBTNCOLORS][iOver];
+	css.color = tt_aV[CLOSEBTNCOLORS][iOver + 1];
+}
+function tt_Int(x)
+{
+	var y;
+
+	return(isNaN(y = parseInt(x)) ? 0 : y);
+}
+// Adds or removes the document.mousemove or HoveredElem.mouseout handler
+// conveniently. Keeps track of those handlers to prevent them from being
+// set or removed redundantly.
+function tt_AddRemOutFnc(bAdd)
+{
+	var PSet = bAdd ? tt_AddEvtFnc : tt_RemEvtFnc;
+
+	if(bAdd != tt_AddRemOutFnc.bOn)
+	{
+		PSet(tt_over, "mouseout", tt_OnOut);
+		tt_AddRemOutFnc.bOn = bAdd;
+		if(!bAdd)
+			tt_OpReHref();
+	}
+}
+tt_AddRemOutFnc.bOn = false;
+Number.prototype.Timer = function(s, iT, bUrge)
+{
+	if(!this.value || bUrge)
+		this.value = window.setTimeout(s, iT);
+}
+Number.prototype.EndTimer = function()
+{
+	if(this.value)
+	{
+		window.clearTimeout(this.value);
+		this.value = 0;
+	}
+}
+function tt_SetOpa(css, opa)
+{
+	tt_opa = opa;
+	if(tt_flagOpa == 1)
+	{
+		// Hack for bugs of IE:
+		// A DIV cannot be made visible in a single step if an opacity < 100
+		// has been applied while the DIV was hidden.
+		// Moreover, in IE6, applying an opacity < 100 has no effect if the
+		// concerned element has no layout (position, size, zoom, ...).
+		if(opa < 100)
+		{
+			var bVis = css.visibility != "hidden";
+			css.zoom = "100%";
+			if(!bVis)
+				css.visibility = "visible";
+			css.filter = "alpha(opacity=" + opa + ")";
+			if(!bVis)
+				css.visibility = "hidden";
+		}
+		else
+			css.filter = "";
+	}
+	else
+	{
+		opa /= 100.0;
+		switch(tt_flagOpa)
+		{
+		case 2:
+			css.KhtmlOpacity = opa; break;
+		case 3:
+			css.KHTMLOpacity = opa; break;
+		case 4:
+			css.MozOpacity = opa; break;
+		case 5:
+			css.opacity = opa; break;
+		}
+	}
+}
+function tt_MovDomNode(el, dadFrom, dadTo)
+{
+	if(dadFrom)
+		dadFrom.removeChild(el);
+	if(dadTo)
+		dadTo.appendChild(el);
+}
+function tt_Err(sErr)
+{
+	if(tt_Debug)
+		alert("Tooltip Script Error Message:\n\n" + sErr);
+}
+
+//===========  DEALING WITH EXTENSIONS	==============//
+function tt_ExtCmdEnum()
+{
+	var s;
+
+	// Add new command(s) to the commands enum
+	for(var i in config)
+	{
+		s = "window." + i.toString().toUpperCase();
+		if(eval("typeof(" + s + ") == tt_u"))
+		{
+			eval(s + " = " + tt_aV.length);
+			tt_aV[tt_aV.length] = null;
+		}
+	}
+}
+function tt_ExtCallFncs(arg, sFnc)
+{
+	var b = false;
+	for(var i = tt_aExt.length; i;)
+	{--i;
+		var fnc = tt_aExt[i]["On" + sFnc];
+		// Call the method the extension has defined for this event
+		if(fnc && fnc(arg))
+			b = true;
+	}
+	return b;
+}
+
+tt_Init();
+</script>
+
+<div id="container">
+  
+  <div id="main">
+    
+    <div id="content">
+      <div id="text">
+        <div style="padding: 0px; overflow: hidden; visibility: hidden; position: absolute; width: 1023px; left: -1024px; top: 0px; z-index: 1010;" id="WzTtDiV"></div>
+<p><img src="https://www.dropbox.com/scl/fi/bum4ztj754nwh87ufsbu5/Plot-Map.png?rlkey=flqikiz1ju3l19zb1y5h1r2zm&raw=1" width="1905" height="2696" usemap="#Map" />
+   <map name="Map" id="Map">
+	
+     <area shape="poly" coords="250,1250,243,1173,356,1173,356,1249" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> J. பேன்ஸி, </b> W/o, ஜெபசிங், <br> கைபேசி எண் 98948 24778, <br> தூத்துக்குடி - 628 002. <br> Document No. 1590/2022. <table width=100% cellspacing=0 cellpadding=0 border=0><tr><td height=5></td></tr><tr><td bgcolor=red height=2></td></tr><tr><td height=5></td></tr></table> <b> <u> Mortgage Deed:</u> <br> J. பேன்ஸி, </b> <br> தமிழ்நாடு மெர்க்கன்டைல் வங்கி லிட், தூத்துக்குடி போர்ட் டிரஸ்ட் கிளை. <br> Document No. 1655/2025. <table width=100% cellspacing=0 cellpadding=0 border=0><tr><td height=5></td></tr><tr><td bgcolor=red height=2></td></tr><tr><td height=5></td></tr></table> <b> <u> Mortgage Deed:</u> <br> J. பேன்ஸி, </b> <br> தமிழ்நாடு மெர்க்கன்டைல் வங்கி லிட், தூத்துக்குடி போர்ட் டிரஸ்ட் கிளை. <br> Document No. 99/2026. ', TITLE, 'FANCY CITY - SHOP', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+     
+     <area shape="poly" coords="340,1086,343,1087,334,971,426,979,428,1087"  onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> J. இம்மானுவேல் 1, </b> <br> கைபேசி எண் 97906 37941, <br> <b> I. ஆனந்தி விஜயராணி 2, </b> <br> கைபேசி எண் 97906 99915, </b> <br> S/o, ஜோசப், W/o. J. இம்மானுவேல் <br> Document No. 144/2023.  <br> <a href=https://drive.google.com/file/d/1Wm-G4JjgWmo-3qK5-kTgYfXkxFVMuq8w target=_blank> <b>Download document </b><\/a>.', TITLE, 'FANCY CITY - PLOT NO. 1', WIDTH, 400, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+     
+     <area shape="poly" coords="427,1085,427,977,533,987,534,1084" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> M. சிதம்பர கந்தன், </b> <br> கைபேசி எண் 94439 95487, <br> S/o, மாணிக்கம், <br> 13, நடுத்தெரு, தைக்காவூர், <br> தூத்துக்குடி மாவட்டம். </b> <br> Document No. 1794/2023. <br> <a href=https://drive.google.com/file/d/1RmjtvLWMuItLsxedq5ksdyCv0Vmao0vp target=_blank> <b>Download document </b><\/a>.', TITLE, 'FANCY CITY - PLOT NO. 2', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+     
+     <area shape="poly" coords="534,1086,534,990,639,998,637,1087" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> M. சிதம்பர கந்தன், </b> <br> கைபேசி எண் 94439 95487, <br> S/o, மாணிக்கம், <br> 13, நடுத்தெரு, தைக்காவூர், <br> தூத்துக்குடி மாவட்டம். </b> <br> Document No. 1793/2023. <br> <a href=https://drive.google.com/file/d/1IV0kejcvjWLgXCpdQU_38A_K_cvryN9A target=_blank> <b>Download document </b><\/a>.', TITLE, 'FANCY CITY - PLOT NO. 3', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	 
+	 <area shape="poly" coords="639,1086,639,996,744,1006,744,1084" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> F. அருள் ராபின்சன், </b> <br> கைபேசி எண் 98949 26379, <br> S/o, பிரான்சிஸ் சேவியர், <br> 12/64, ஞானராஜ் நகர், மூக்குப்பீறி, <br> தூத்துக்குடி மாவட்டம். </b> <br> Document No. 867/2026. <br> <a href=https://drive.google.com/file/d/1NOdPT78WIY0kOc7vZ-K1pzCyaPyunms9 target=_blank> <b>Download document </b><\/a>.', TITLE, 'FANCY CITY - PLOT NO. 4', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+     
+     <area shape="poly" coords="743,1086,743,1009,790,1013,791,1087" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> S. ராமசுப்பிரமணியன், </b> <br> கைபேசி எண் 90926 51277, <br> S/o, சுடலைமுத்து, <br> திருச்செந்தூர். <br> Document No. 649/2023. <br> <a href=https://drive.google.com/file/d/1ca9lMJ45RoitcuZnengDGIsAQuUHzMhN target=_blank> <b>Download document </b><\/a>.', TITLE, 'FANCY CITY - PLOT NO. 5', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+     
+     <area shape="poly" coords="791,1086,790,1014,839,1019,839,1087" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> S. ராமசுப்பிரமணியன், </b> <br> கைபேசி எண் 90926 51277, <br> S/o, சுடலைமுத்து, <br> திருச்செந்தூர். <br> Document No. 650/2023. <br> <a href=https://drive.google.com/file/d/1d7MEr-qX9V2vevbCzQEuaHKlWU78JEtj target=_blank> <b>Download document </b><\/a>.', TITLE, 'FANCY CITY - PLOT NO. 6', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+     
+     <area shape="poly" coords="839,1085,839,1017,887,1020,886,1086" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> ஏ.ஞானசேகர், </b> <br> கைபேசி எண் 96265 11969, <br> S/o, P.ஏசுவடியான், <br> Document No. 1484/2024. <br> <a href=https://drive.google.com/file/d/1MfDJ-eYS1u-7l-uXy1UG-gTjlxIONEU- target=_blank> <b>Download document <\/a>. ', TITLE, 'FANCY CITY - PLOT NO. 7', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" /> 
+	 
+	<area shape="poly" coords="889,1083,888,1019,938,1024,937,1084" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> முனீஸ் முத்துசெல்வம் மு 1, <br> M.கீதா 2, </b> <br> கைபேசி எண் 88079 81395, <br> Document No. 479/2026. <br> <a href=https://drive.google.com/file/d/1YjrNMD_QzZvWZTeBvwOVaj8oXUbSc1ta target=_blank> <b>Download document <\/a>. ', TITLE, 'FANCY CITY - PLOT NO. 8', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" /> 
+	 
+   	<area shape="poly" coords="938,1083,937,1023,989,1028,988,1083" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> முனீஸ் முத்துசெல்வம் மு 1, <br> M.கீதா 2, </b> <br> கைபேசி எண் 88079 81395, <br> Document No. 479/2026. <br> <a href=https://drive.google.com/file/d/1YjrNMD_QzZvWZTeBvwOVaj8oXUbSc1ta target=_blank> <b>Download document <\/a>. ', TITLE, 'FANCY CITY - PLOT NO. 9', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+     
+     <area shape="poly" coords="987,1085,989,1027,1060,1034,1059,1086" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> S. இம்மானுவேல் பாலசிங், </b> <br> கைபேசி எண் 94442 89121, <br> S/o. பி.சீனிவாசன், <br> Document No. 684/2024. ', TITLE, 'FANCY CITY - PLOT NO. 10', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+     
+     <area shape="poly" coords="1059,1086,1059,1034,1129,1043,1128,1085" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> V. ராமகிருஷ்ண முத்து, </b> <br> கைபேசி எண் 97155 25211, <br> S/o. வீரமணி, <br> Document No. 1483/2024. <br> <a href=https://drive.google.com/file/d/1MgAssmwjVPhh_lUg3o1LOZ7bVRnYa7h4 target=_blank> <b>Download document <\/a>.', TITLE, 'FANCY CITY - PLOT NO. 11', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+     
+     <area shape="poly" coords="1616,1280,1615,1175,1678,1180,1677,1279" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> ஜெபஸ்டின் J. </b> <br> கைபேசி எண் 98847 79636, <br> <b> J. சுதா கிறிஸ்டி, </b> <br> கைபேசி எண் 97898 84243, <br> Document No. 1101/2023. <br> <a href=https://drive.google.com/file/d/1MgjZJmxOmUNHu7ro5NkNVVkv1I9wL8ce target=_blank> <b>Download document <\/a>.', TITLE, 'FANCY CITY - PLOT NO. 13', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	 
+	<area shape="poly" coords="1556,1279,1556,1172,1603,1171,1618,1173,1617,1278" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> ராமஜெயம் பா </b> <br> கைபேசி எண் 89739 95472, <br> S/o. பாலகிருஷ்ணன், <br> Document No. 1014/2026. <br> <a href=https://drive.google.com/file/d/1sm_oFvG928BkmWhJfdz5kx09N0iAxBpv target=_blank> <b>Download document <\/a>.', TITLE, 'FANCY CITY - PLOT NO. 14', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+
+   	<area shape="poly" coords="1494,1279,1494,1173,1555,1171,1555,1280" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> ராமஜெயம் பா </b> <br> கைபேசி எண் 89739 95472, <br> S/o. பாலகிருஷ்ணன், <br> Document No. 1014/2026. <br> <a href=https://drive.google.com/file/d/1sm_oFvG928BkmWhJfdz5kx09N0iAxBpv target=_blank> <b>Download document <\/a>.', TITLE, 'FANCY CITY - PLOT NO. 15', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	 
+	 <area shape="rect" coords="1433,1172,1494,1281" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> M. கவிதா, </b> <br> கைபேசி எண் 98428 57564, <br> கோயம்புத்தூர். <br> Document No. 425/2025. <br> <a href=https://drive.google.com/file/d/1iLl0I5FY479PHWKxXOQN1aVgx5Oi8sj8 target=_blank> <b>Download document <\/a>.', TITLE, 'FANCY CITY - PLOT NO. 16', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	 
+	 <area shape="poly" coords="1371,1279,1370,1172,1433,1171,1432,1280" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> முத்துலெட்சுமி, </b> <br> கைபேசி எண் 63835 51191, <br> கிழக்குத் தெரு, பிள்ளைவிளை. <br> Document No. /2026. <br> <a href=https:/www.google.com target=_blank> <b>Download document <\/a>.', TITLE, 'FANCY CITY - PLOT NO. 17', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+     
+     <area shape="rect" coords="1307,1171,1369,1279" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> C. முத்துபாண்டி, </b> <br> கைபேசி எண் 99650 99418, <br> நாசரேத். <br> Document No. 1605/2024. <br> <a href=https://drive.google.com/file/d/1MiNyjvIODw6HtUlMD-zQloX0SlHPa5Ar target=_blank> <b>Download document <\/a>.', TITLE, 'FANCY CITY - PLOT NO. 18', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	 
+	 <area shape="poly" coords="1245,1279,1246,1172,1307,1171,1305,1279" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> P. சரவணப்பெருமாள், </b> <br> கைபேசி எண் 93604 94304, <br> நாசரேத். <br> Document No. 447/2026. <br> <a href=https://drive.google.com/file/d/1y97swQceIdgqHS3w6CIO2M7O87uVTT2p target=_blank> <b>Download document <\/a>.', TITLE, 'FANCY CITY - PLOT NO. 19', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+     
+     <area shape="rect" coords="1185,1172,1246,1279" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> P. ராமகனி, </b> <br> கைபேசி எண் 94435 83941, <br> W/o. பலவேசமுத்து, <br> Document No. 1485/2024. <br> <a href=https://drive.google.com/file/d/1QbHI2thVRYJAd1jklcNq_axThwmhRnT_ target=_blank> <b>Download document <\/a>. </b> <table width=100% cellspacing=0 cellpadding=0 border=0><tr><td height=5></td></tr><tr><td bgcolor=red height=2></td></tr><tr><td height=5></td></tr></table> <b> <u> Rectification Deed:</u> <br> P. ராமகனி, </b> <br> W/o. பலவேசமுத்து, <br> Document No. 2001/2024. <table width=100% cellspacing=0 cellpadding=0 border=0><tr><td height=5></td></tr><tr><td bgcolor=red height=2></td></tr><tr><td height=5></td></tr></table> <b> <u> Mortgage Deed:</u> <br> P. ராமகனி, </b> <br> பைவ் ஸ்டார் பிசினஸ் பைனான்ஸ் லிமிடெட், நாசரேத் கிளை. <br> Document No. 31/2025. <table width=100% cellspacing=0 cellpadding=0 border=0><tr><td height=5></td></tr><tr><td bgcolor=red height=2></td></tr><tr><td height=5></td></tr></table> <b> <u> Mortgage Deed:</u> <br> P. ராமகனி, </b> <br> பைவ் ஸ்டார் பிசினஸ் பைனான்ஸ் லிமிடெட். <br> Document No. 1564/2026. ', TITLE, 'FANCY CITY - PLOT NO. 20', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+     
+     <area shape="rect" coords="1123,1173,1185,1282" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> ரா. சார்லஸ், </b> <br> கைபேசி எண் 99411 81303, <br> <b> P. ஜீலி மார்கிரேட், </b> <br> கைபேசி எண் 90031 30052, <br> கௌரிவாக்கம். <br> Document No. 724/2024. ', TITLE, 'FANCY CITY - PLOT NO. 21', WIDTH, 350,)" />
+     
+     <area shape="rect" coords="1061,1173,1122,1281" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> ரா. சார்லஸ், </b> <br> கைபேசி எண் 99411 81303, <br> <b> P. ஜீலி மார்கிரேட், </b> <br> கைபேசி எண் 90031 30052, <br> கௌரிவாக்கம். <br> Document No. 724/2024.', TITLE, 'FANCY CITY - PLOT NO. 22', WIDTH, 330,)" />
+     
+     <area shape="rect" coords="1001,1172,1064,1282" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> D.V. ஞானப்பிரகாசம், </b> <br> கைபேசி எண் 98431 23708, <br> S/o, டேவிட் விசுவாசம், <br> சச்சிதானந்தபுரம், <br> Document No. 19/2023. ', TITLE, 'FANCY CITY - PLOT NO. 23', WIDTH, 330,)" />
+     
+     <area shape="poly" coords="919,1279,920,1185,935,1172,1001,1171,1002,1280" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> D.V. ஞானப்பிரகாசம், </b> <br> கைபேசி எண் 98431 23708, <br> S/o, டேவிட் விசுவாசம், <br> சச்சிதானந்தபுரம், <br> Document No. 19/2023. ', TITLE, 'FANCY CITY - PLOT NO. 24', WIDTH, 330,)" />
+     
+     <area shape="poly" coords="754,1279,752,1172,821,1171,833,1183,833,1278" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> J. மத்தியாஸ், </b> <br> கைபேசி எண் 62827 70671, <br>  S/o, ஜாண், கொரட்டூர், <br> Document No. 396/2023. <br> <a href=https://drive.google.com/file/d/1aY3PpYJmb2RjMN8g1waRIQKRAWGqAEKH target=_blank> <b>Download document </b><\/a>. ', TITLE, 'FANCY CITY - PLOT NO. 25', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	 
+	 <area shape="rect" coords="673,1171,754,1280" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> P. ஞானபுஷ்பம்,  </b> <br> கைபேசி எண் 78119 45530, <br>  W/o, S. பொன்ராஜ், ஞானராஜ் நகர், <br> Document No. 1375/2025. <br> <a href=https://drive.google.com/file/d/1QiZj3PNv5ilz7V3hfZYpWFWWO_CKqQL6 target=_blank> <b>Download document </b><\/a>. ', TITLE, 'FANCY CITY - PLOT NO. 26', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	 
+	 <area shape="rect" coords="592,1171,674,1281" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> P. ஞானபுஷ்பம்,  </b> <br> கைபேசி எண் 78119 45530, <br>  W/o, S. பொன்ராஜ், ஞானராஜ் நகர், <br> Document No. 1375/2025. <br> <a href=https://drive.google.com/file/d/1QiZj3PNv5ilz7V3hfZYpWFWWO_CKqQL6 target=_blank> <b>Download document </b><\/a>. ', TITLE, 'FANCY CITY - PLOT NO. 27', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	 
+	 <area shape="poly" coords="513,1278,513,1171,593,1171,592,1280" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> ஜெயராஜ் நவீன் குமார்,  </b> <br> கைபேசி எண் 98657 51138, <br>  S/o, ஜேம்ஸ்ராஜ், <br> மெஞ்ஞானபுரம் <br> Document No. 1086/2026. <br> <a href=https://drive.google.com/file/d/1JSnbzfmrftSXDGy1nLcWyEaF_wDvKRGV target=_blank> <b>Download document </b><\/a>. ', TITLE, 'FANCY CITY - PLOT NO. 28', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	 
+	 <area shape="poly" coords="432,1279,431,1172,513,1172,512,1279" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> லலிதா சுவாமிதாசன்,  </b> <br> கைபேசி எண் 95788 05322, <br>  W/o, J. எட்வர்ட்ராஜா, <br> மசகவுண்டன் செட்டிபாளயம், <br> Document No. 799/2026. <br> <a href=https://drive.google.com/file/d/1FssIYkUNGtCtXzBi-90yxmoh_YO5jv3f target=_blank> <b>Download document </b><\/a>. ', TITLE, 'FANCY CITY - PLOT NO. 29', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	 
+	 <area shape="rect" coords="432,1279,514,1388" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> S. பைசோன், </b> <br> கைபேசி எண் 94860 83228, <br>  S/o, S.சாமுவேல், ஆலங்குளம். <br> Document No. 1137/2025. <br> <a href=https://drive.google.com/file/d/1C7PSnn6gr1noIDf7xJnBqCJcKmCJf42D target=_blank> <b>Download document </b><\/a>. ', TITLE, 'FANCY CITY - PLOT NO. 32', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+		
+		<area shape="rect" coords="512,1279,594,1388" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> S. பைசோன், </b> <br> கைபேசி எண் 94860 83228, <br>  S/o, S.சாமுவேல், ஆலங்குளம். <br> Document No. 1137/2025. <br> <a href=https://drive.google.com/file/d/1C7PSnn6gr1noIDf7xJnBqCJcKmCJf42D target=_blank> <b>Download document </b><\/a>. ', TITLE, 'FANCY CITY - PLOT NO. 33', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+		
+	 <area shape="poly" coords="592,1387,593,1280,673,1279,673,1386" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> விமல அன்பு சாம், </b> <br> கைபேசி எண் 90801 01452, <br>  S/o, தாமஸ் அந்தோணி, நாசரேத். <br> Document No. 887/2026. <br> <a href=https://drive.google.com/file/d/17flwg2G0v-osJeaXzIhgHJzKMBNJrf6m target=_blank> <b>Download document </b><\/a>. <table width=100% cellspacing=0 cellpadding=0 border=0><tr><td height=5></td></tr><tr><td bgcolor=red height=2></td></tr><tr><td height=5></td></tr></table> <b> <u> Mortgage Deed:</u> <br> விமல அன்பு சாம், </b> <br> பிரகாசபுரம் கோவாப்ரேட்டிவ் அர்பன் பேங்க் லிமிடெட், பிரகாசபுரம் கிளை. <br> Document No. 1190/2026. ', TITLE, 'FANCY CITY - PLOT NO. 34', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	 
+	 <area shape="rect" coords="674,1279,754,1388" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> E. சுஜித் ந செல்வசுந்தர், </b> <br> கைபேசி எண் 99422 56498, <br>  S/o, எட்வர்ட், நாசரேத், <br> Document No. 1009/2025. <br> <a href=https://drive.google.com/file/d/1pgMdWBb8WvN-KXzIJZrhjyWDMK2YX11e target=_blank> <b>Download document </b><\/a>. <table width=100% cellspacing=0 cellpadding=0 border=0><tr><td height=5></td></tr><tr><td bgcolor=red height=2></td></tr><tr><td height=5></td></tr></table> <b> <u> Mortgage Deed:</u> <br> E. சுஜித் ந செல்வசுந்தர், </b> <br> கனரா வங்கி, நாசரேத் கிளை. <br> Document No. 1360/2025. ', TITLE, 'FANCY CITY - PLOT NO. 35', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	 
+		<area shape="rect" coords="754,1279,833,1387" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> E. சுஜித் ந செல்வசுந்தர், </b> <br> கைபேசி எண் 99422 56498, <br>  S/o, எட்வர்ட், நாசரேத், <br> Document No. 1009/2025. <br> <a href=https://drive.google.com/file/d/1pgMdWBb8WvN-KXzIJZrhjyWDMK2YX11e target=_blank> <b>Download document </b><\/a>. <table width=100% cellspacing=0 cellpadding=0 border=0><tr><td height=5></td></tr><tr><td bgcolor=red height=2></td></tr><tr><td height=5></td></tr></table> <b> <u> Mortgage Deed:</u> <br> E. சுஜித் ந செல்வசுந்தர், </b> <br> கனரா வங்கி, நாசரேத் கிளை. <br> Document No. 1360/2025. ', TITLE, 'FANCY CITY - PLOT NO. 36', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	    
+     <area shape="poly" coords="933,1387,918,1374,919,1281,1001,1280,1002,1387" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> D.V. ஞானப்பிரகாசம், </b> <br> கைபேசி எண் 98431 23708, <br> S/o, டேவிட் விசுவாசம், <br> சச்சிதானந்தபுரம், <br> Document No. 19/2023. ', TITLE, 'FANCY CITY - PLOT NO. 37', WIDTH, 330, )" />
+     
+     <area shape="rect" coords="1001,1281,1063,1387" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> D.V. ஞானப்பிரகாசம், </b> <br> கைபேசி எண் 98431 23708, <br> S/o, டேவிட் விசுவாசம், <br> சச்சிதானந்தபுரம், <br> Document No. 19/2023. ', TITLE, 'FANCY CITY - PLOT NO. 38', WIDTH, 330, )" />
+	 
+	 <area shape="rect" coords="1062,1280,1123,1388" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> ரா. சார்லஸ், </b> <br> கைபேசி எண் 99411 81303, <br> <b> P. ஜீலி மார்கிரேட், </b> <br> கைபேசி எண் 90031 30052, <br> கௌரிவாக்கம். <br> Document No. 1735/2025. <br> <a href=https://drive.google.com/file/d/1_vkD0wa37zZtZQ0N-QoQrxFPrQuZWeCZ target=_blank> <b>Download document </b><\/a>. <table width=100% cellspacing=0 cellpadding=0 border=0><tr><td height=5></td></tr><tr><td bgcolor=red height=2></td></tr><tr><td height=5></td></tr></table> <b> <u> Mortgage Deed:</u> <br> ரா. சார்லஸ் 1, <br> P. ஜீலி மார்கிரேட் 2, </b> <br> HDFC BANK LTD. <br> Document No. 1736/2025. ', TITLE, 'FANCY CITY - PLOT NO. 39', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	 
+	 <area shape="rect" coords="1123,1280,1184,1388" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> ரா. சார்லஸ், </b> <br> கைபேசி எண் 99411 81303, <br> <b> P. ஜீலி மார்கிரேட், </b> <br> கைபேசி எண் 90031 30052, <br> கௌரிவாக்கம். <br> Document No. 1735/2025. <br>  <a href=https://drive.google.com/file/d/1_vkD0wa37zZtZQ0N-QoQrxFPrQuZWeCZ target=_blank> <b>Download document </b><\/a>. <table width=100% cellspacing=0 cellpadding=0 border=0><tr><td height=5></td></tr><tr><td bgcolor=red height=2></td></tr><tr><td height=5></td></tr></table> <b> <u> Mortgage Deed:</u> <br> ரா. சார்லஸ் 1, <br> P. ஜீலி மார்கிரேட் 2, </b> <br> HDFC BANK LTD. <br> Document No. 1736/2025. ', TITLE, 'FANCY CITY - PLOT NO. 40', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	 
+	<area shape="poly" coords="1186,1386,1186,1279,1248,1278,1248,1385" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> G. பேச்சியம்மாள், </b> <br> கைபேசி எண் 86678 95914, <br> கூட்டாம்புளி. <br> Document No. 922/2026. <br>  <a href=https://drive.google.com/file/d/1NG_YAM_PHph2iNHLv-fk-zxzJGujO_aj target=_blank> <b>Download document </b><\/a>.', TITLE, 'FANCY CITY - PLOT NO. 41', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	 
+    <area shape="poly" coords="1249,1386,1248,1279,1309,1278,1310,1387" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> வெயிலுகாந்தா, </b> <br> கைபேசி எண் 80122 15469, <br> அகப்பைக்குளம். <br> Document No. 923/2026. <br>  <a href=https://drive.google.com/file/d/1CrsEji7DeSOBcnsyfQupUbNmEtIM-9Xn target=_blank> <b>Download document </b><\/a>.', TITLE, 'FANCY CITY - PLOT NO. 42', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	
+	<area shape="poly" coords="1311,1386,1310,1278,1371,1278,1371,1386" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> ஜெனிபர் பாக்கியத்தாய், </b> <br> கைபேசி எண் 89780 40475, <br> நாடார் 2-வது தெரு, ஏரல். <br> Document No. 1068/2026. <br>  <a href=https://drive.google.com/file/d/1vmNChFRkRicAGhdWXJwIY2m-q2GAqLKR target=_blank> <b>Download document </b><\/a>. <table width=100% cellspacing=0 cellpadding=0 border=0><tr><td height=5></td></tr><tr><td bgcolor=red height=2></td></tr><tr><td height=5></td></tr></table> <b> <u> Mortgage Deed:</u> <br> ஜெனிபர் பாக்கியத்தாய், </b> <br> பிரகாசபுரம் கோவாப்ரேட்டிவ் அர்பன் பேங்க் லிமிடெட், பிரகாசபுரம் கிளை. <br> Document No. 1255/2026. ', TITLE, 'FANCY CITY - PLOT NO. 43', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	
+	<area shape="poly" coords="1372,1387,1371,1280,1433,1279,1433,1387" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> ஜெனிபர் பாக்கியத்தாய், </b> <br> கைபேசி எண் 89780 40475, <br> நாடார் 2-வது தெரு, ஏரல். <br> Document No. 1068/2026. <br>  <a href=https://drive.google.com/file/d/1vmNChFRkRicAGhdWXJwIY2m-q2GAqLKR target=_blank> <b>Download document </b><\/a>. <table width=100% cellspacing=0 cellpadding=0 border=0><tr><td height=5></td></tr><tr><td bgcolor=red height=2></td></tr><tr><td height=5></td></tr></table> <b> <u> Mortgage Deed:</u> <br> ஜெனிபர் பாக்கியத்தாய், </b> <br> பிரகாசபுரம் கோவாப்ரேட்டிவ் அர்பன் பேங்க் லிமிடெட், பிரகாசபுரம் கிளை. <br> Document No. 1255/2026. ', TITLE, 'FANCY CITY - PLOT NO. 44', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	
+	<area shape="poly" coords="1494,1387,1493,1279,1555,1279,1556,1386" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> B. வினோத்குமார், </b> <br> கைபேசி எண் 70106 09158, <br> S/o. பாலகிருஷ்ணன், <br> Document No. 1013/2026. <br> <a href=https://drive.google.com/file/d/11ugCYuO-sBcpJEVbj4nt88ZKktSn-URP target=_blank> <b>Download document <\/a>.', TITLE, 'FANCY CITY - PLOT NO. 46', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	
+   	<area shape="poly" coords="1557,1386,1555,1279,1618,1280,1617,1388"  onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> B. வினோத்குமார், </b> <br> கைபேசி எண் 70106 09158, <br> S/o. பாலகிருஷ்ணன், <br> Document No. 1013/2026. <br> <a href=https://drive.google.com/file/d/11ugCYuO-sBcpJEVbj4nt88ZKktSn-URP target=_blank> <b>Download document <\/a>.', TITLE, 'FANCY CITY - PLOT NO. 47', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+     
+     <area shape="poly" coords="1677,1388,1678,1280,1740,1280,1754,1388" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> A. துரைராஜ், </b> <br> கைபேசி எண் 80568 26373, <br> S/o, ஆபிரகாம், <br> 784, தெற்குத் தெரு, புதுகுப்பம், <br> கடலூர் மாவட்டம். </b> <br> Document No. 1088/2023. <br> <a href=https://drive.google.com/file/d/1SSTZXyGX7wcxDnhvDLRVRuIiFilwbhr2 target=_blank> <b>Download document </b><\/a>.', TITLE, 'FANCY CITY - PLOT NO. 49', WIDTH, 350, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, 1, OFFSETX, 1, CLOSEBTN, true, CLICKCLOSE, false)" />
+	 
+	<area shape="poly" coords="1373,1557,1372,1450,1432,1449,1433,1558" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> மணிகண்டன் ச, </b> <br> கைபேசி எண்  , <br> S/o, சண்முகசுந்தரம், <br> 16B, தென்திருப்பேரை, <br> Document No. 832/2026. <br> <a href=https://www.google.com target=_blank> <b>Download document </b><\/a>.', TITLE, 'FANCY CITY - PLOT NO. 52', WIDTH, 350, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, 1, OFFSETX, 1, CLOSEBTN, true, CLICKCLOSE, false)" />
+	
+	<area shape="poly" coords="1310,1557,1309,1449,1370,1449,1371,1556" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> மணிகண்டன் ச, </b> <br> கைபேசி எண்  , <br> S/o, சண்முகசுந்தரம், <br> 16B, தென்திருப்பேரை, <br> Document No. 832/2026. <br> <a href=https://www.google.com target=_blank> <b>Download document </b><\/a>.', TITLE, 'FANCY CITY - PLOT NO. 53', WIDTH, 350, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, 1, OFFSETX, 1, CLOSEBTN, true, CLICKCLOSE, false)" />
+     
+     <area shape="rect" coords="1248,1449,1310,1557" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> R ஞானதேசிகன், </b> <br> கைபேசி எண் 88835 44774, <br> S/o, ரெத்தினசுவாமி, <br> நாகர்கோவில். </b> <br> Document No. 1482/2023. <br> <a href=https://drive.google.com/file/d/1MdA8fabwaPwcbEQ6tdshGgVaS82GGXNb target=_blank> <b>Download document </b><\/a>. <table width=100% cellspacing=0 cellpadding=0 border=0><tr><td height=5></td></tr><tr><td bgcolor=red height=2></td></tr><tr><td height=5></td></tr></table> <b> <u> Re-Sale Deed:</u> <br> சத்தியப்பிரியா, </b> <br> கைபேசி எண்  , <br> (R ஞானதேசிகன் அவர்களிடமிருந்து கிரையம்) <br> Document No. 1052/2026. ', TITLE, 'FANCY CITY - PLOT NO. 54', WIDTH, 350, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, 1, OFFSETX, 1, CLOSEBTN, true, CLICKCLOSE, false)" />
+	 
+	 <area shape="rect" coords="1064,1449,1124,1556" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> மணிமேகலா, </b> <br> கைபேசி எண் 99442 72814, <br> W/o, கார்த்திக், <br> குருகாட்டூர். </b> <br> Document No. 1465/2025. <br> <a href=https://www.google.com target=_blank> <b>Download document </b><\/a>. <table width=100% cellspacing=0 cellpadding=0 border=0><tr><td height=5></td></tr><tr><td bgcolor=red height=2></td></tr><tr><td height=5></td></tr></table> <b> <u> Double Entry:</u> <br> ஜ. நவீன் குமார் 1, <br> ஜ டெரின்குமார் 2. </b> <br> கைபேசி எண் 86108 43009, <br> S/o, கி. ஜஸ்டின் பாஸ்கர், <br> குருகாட்டூர். </b> <br> Document No. 95/2026. <br> <a href=https://drive.google.com/file/d/1WXF1iZKA_ZkSyp5Xu2mVHr-RLiaO1RLF target=_blank> <b>Download document </b><\/a>.', TITLE, 'FANCY CITY - PLOT NO. 57', WIDTH, 350, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, 1, OFFSETX, 1, CLOSEBTN, true, CLICKCLOSE, false)" />
+	 
+	 <area shape="poly" coords="1002,1556,1002,1449,1064,1449,1063,1556" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> ஜ. நவீன் குமார் 1, <br> ஜ டெரின்குமார் 2. </b> <br> கைபேசி எண் 86108 43009, <br> S/o, கி. ஜஸ்டின் பாஸ்கர், <br> குருகாட்டூர். </b> <br> Document No. 95/2026. <br> <a href=https://drive.google.com/file/d/1WXF1iZKA_ZkSyp5Xu2mVHr-RLiaO1RLF target=_blank> <b>Download document </b><\/a>.', TITLE, 'FANCY CITY - PLOT NO. 58', WIDTH, 350, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, 1, OFFSETX, 1, CLOSEBTN, true, CLICKCLOSE, false)" />
+     
+     <area shape="poly" coords="922,1556,920,1463,935,1449,1002,1450,1001,1555" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> S. அகஸ்டின் ஜெயகுமார், </b> <br> Cell No : 91767 75582, <br> S/o, செல்வராஜ், <br> 114, லட்சுமிபுரம், மீஞ்சூர், <br> Document No. 1928/2024. <br> <a href=https://drive.google.com/file/d/1RfTaJT7LUapHovILM8-mBndcvWwZ4Ff2 target=_blank> <b>Download document </b><\/a>.', TITLE, 'FANCY CITY - PLOT NO. 59', WIDTH, 350, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, 1, OFFSETX, 1, CLOSEBTN, true, CLICKCLOSE, false)" />
+     
+	 <area shape="poly" coords="753,1556,754,1449,820,1450,834,1462,833,1556" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> ரா. பிரியா, </b> <br> Cell No : 97903 17239, <br> W/o, ஜட்சன் கோயில்ராஜ், <br> 17/15, செங்கல்பட்டு. <br> Document No. 2023/2024. <br> <a href=https://drive.google.com/file/d/1NTQXhhk5Ub0nx03d88VgybAzsQV_sQ6J target=_blank> <b>Download document </b><\/a>.', TITLE, 'FANCY CITY - PLOT NO. 60', WIDTH, 350, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, 1, OFFSETX, 1, CLOSEBTN, true, CLICKCLOSE, false)" />
+	 
+	 <area shape="rect" coords="672,1449,753,1558" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> ரா. பிரியா, </b> <br> Cell No : 97903 17239, <br> W/o, ஜட்சன் கோயில்ராஜ், <br> 17/15, செங்கல்பட்டு. <br> Document No. 14/2025. <br> <a href=https://drive.google.com/file/d/1f7JTGoKHFX4uDi_NqwExeixc8SCT8hRV target=_blank> <b>Download document </b><\/a>.', TITLE, 'FANCY CITY - PLOT NO. 61', WIDTH, 350, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, 1, OFFSETX, 1, CLOSEBTN, true, CLICKCLOSE, false)" />
+	 
+	 <area shape="rect" coords="593,1449,673,1558" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> இருதய டெரன்ஸ் ஆல்வின், </b> <br> Cell No : 99626 22675, <br> S/o, சந்தனதிரவியம், <br> 129A, மாடம்பாக்கம், சென்னை.<br> Document No. 1075/2025. <br> <a href=https://drive.google.com/file/d/17cjyIgrbceiP4VASvawh7qyUaAcfD9AP target=_blank> <b>Download document </b><\/a>. <table width=100% cellspacing=0 cellpadding=0 border=0><tr><td height=5></td></tr><tr><td bgcolor=red height=2></td></tr><tr><td height=5></td></tr></table> <b> <u> Mortgage Deed:</u> <br> இருதய டெரன்ஸ் ஆல்வின், </b> <br> ஸ்டேட் பாங்க் ஆப் இந்தியா, நாசரேத் கிளை. <br> Document No. 1358/2025. ', TITLE, 'FANCY CITY - PLOT NO. 62', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+   		
+		<area shape="rect" coords="513,1450,593,1558" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> இருதய டெரன்ஸ் ஆல்வின், </b> <br> Cell No : 99626 22675, <br> S/o, சந்தனதிரவியம், <br> 129A, மாடம்பாக்கம், சென்னை.<br> Document No. 1075/2025. <br> <a href=https://drive.google.com/file/d/17cjyIgrbceiP4VASvawh7qyUaAcfD9AP target=_blank> <b>Download document </b><\/a>. <table width=100% cellspacing=0 cellpadding=0 border=0><tr><td height=5></td></tr><tr><td bgcolor=red height=2></td></tr><tr><td height=5></td></tr></table> <b> <u> Mortgage Deed:</u> <br> இருதய டெரன்ஸ் ஆல்வின், </b> <br> ஸ்டேட் பாங்க் ஆப் இந்தியா, நாசரேத் கிளை. <br> Document No. 1358/2025. ', TITLE, 'FANCY CITY - PLOT NO. 63', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+		
+		<area shape="rect" coords="672,1558,754,1664" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> ரா. பிரியா, </b> <br> Cell No : 97903 17239, <br> W/o, ஜட்சன் கோயில்ராஜ், <br> 17/15, செங்கல்பட்டு. <br> Document No. 1215/2025. <br> <a href=https://drive.google.com/file/d/1eTFW5x5nJHIQdsjMCq1Bm2gV3rsa5_ke target=_blank> <b>Download document </b><\/a>.', TITLE, 'FANCY CITY - PLOT NO. 70', WIDTH, 350, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, 1, OFFSETX, 1, CLOSEBTN, true, CLICKCLOSE, false)" />
+	 
+	 <area shape="poly" coords="754,1663,753,1556,834,1557,834,1650,820,1663" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> ரா. பிரியா, </b> <br> Cell No : 97903 17239, <br> W/o, ஜட்சன் கோயில்ராஜ், <br> 17/15, செங்கல்பட்டு. <br> Document No. 2023/2024. <br> <a href=https://drive.google.com/file/d/1NTQXhhk5Ub0nx03d88VgybAzsQV_sQ6J target=_blank> <b>Download document </b><\/a>.', TITLE, 'FANCY CITY - PLOT NO. 71', WIDTH, 350, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, 1, OFFSETX, 1, CLOSEBTN, true, CLICKCLOSE, false)" />
+	 
+     <area shape="poly" coords="935,1663,921,1651,921,1556,1001,1556,1001,1663" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> S. அருள் செல்வம், </b> <br> Cell No : 95519 87798, <br> S/o, செல்வராஜ், <br> 114, லட்சுமிபுரம், மீஞ்சூர், <br> Document No. 1927/2024. <br> <a href=https://drive.google.com/file/d/1QedxWhI294LY2E4xbYzUZt1Uq-jr0-Dn target=_blank> <b>Download document </b><\/a>.', TITLE, 'FANCY CITY - PLOT NO. 72', WIDTH, 350, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, 1, OFFSETX, 1, CLOSEBTN, true, CLICKCLOSE, false)" />
+	 
+	 <area shape="rect" coords="1060,1556,1126,1664" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> மணிமேகலா, </b> <br> கைபேசி எண் 99442 72814, <br> W/o, கார்த்திக், <br> குருகாட்டூர். </b> <br> Document No. 1465/2025. <br> <a href=https://www.google.com target=_blank> <b>Download document </b><\/a>.', TITLE, 'FANCY CITY - PLOT NO. 74', WIDTH, 350, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, 1, OFFSETX, 1, CLOSEBTN, true, CLICKCLOSE, false)" />
+     
+     <area shape="rect" coords="1088,1727,1133,1852" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> S. ஜோசப் பாண்டியன், </b> <br> Cell No : 97882 40400, <br> S/o, சுந்தரபாண்டியன், <br> 45C-1, ஞானராஜ்நகர். <br> Document No. 1103/2024. <br> <a href=https://drive.google.com/file/d/1YH4LzGtpXAM4EyH_IvFNzO5VmcwQqGdi target=_blank> <b>Download document </b><\/a>.', TITLE, 'FANCY CITY - PLOT NO. 92', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+     
+     <area shape="poly" coords="922,1846,921,1740,934,1727,1002,1728,1003,1847" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> B. குருசாமி, </b> <br> Cell No : 99650 43965, <br> S/o, பால் நாடார், <br> 4/83/3, K.T.C. நகர், தூத்துக்குடி.<br> Document No. 723/2024. <br> <a href=https://drive.google.com/file/d/1ZvN5idoiVknZ93sDfXr7XUXQZgXwVGgD target=_blank> <b>Download document </b><\/a>.', TITLE, 'FANCY CITY - PLOT NO. 95', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+     
+     <area shape="poly" coords="753,1843,752,1726,820,1726,834,1740,834,1845" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> B. குருசாமி, </b> <br> Cell No : 99650 43965, <br> S/o, பால் நாடார், <br> 4/83/3, K.T.C. நகர், தூத்துக்குடி.<br> Document No. 1183/2024. <br> <a href=https://drive.google.com/file/d/1_qtHUhP3ga9f8mJY9G3d6LNwW4J7b3Xs target=_blank> <b>Download document </b><\/a>.', TITLE, 'FANCY CITY - PLOT NO. 96', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />   
+   
+   <area shape="poly" coords="673,1842,674,1727,753,1727,753,1844" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> ஜெபக்குமாரி ஜேசுடியாள், </b> <br> Cell No : 94898 82801, <br> W/o, தர்மம் மோசஸ் எபனேசர், <br> 12/34B, ஞானராஜ் நகர், மூக்குப்பீறி.<br> Document No. 1687/2025. <br> <a href=https://drive.google.com/file/d/1iSSTWbTFoQTeReDapKLmHc2P0jwLik83 target=_blank> <b>Download document </b><\/a>.', TITLE, 'FANCY CITY - PLOT NO. 97', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" /> 
+		
+	<area shape="poly" coords="593,1840,593,1727,674,1727,673,1842" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> ஜெபக்குமாரி ஜேசுடியாள், </b> <br> Cell No : 94898 82801, <br> W/o, தர்மம் மோசஸ் எபனேசர், <br> 12/34B, ஞானராஜ் நகர், மூக்குப்பீறி.<br> Document No. 1687/2025. <br> <a href=https://drive.google.com/file/d/1iSSTWbTFoQTeReDapKLmHc2P0jwLik83 target=_blank> <b>Download document </b><\/a>.', TITLE, 'FANCY CITY - PLOT NO. 98', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" /> 
+	
+	<area shape="poly" coords="513,1838,512,1727,593,1726,593,1840"  onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> ஞானபுஷ்பம் ரூபவதி, </b> <br> கைபேசி எண் 87602 41156, <br> W/o. செல்வராஜ், <br> Document No. 1035/2026. <br> <a href=https://www.google.com target=_blank> <b>Download document <\/a>.', TITLE, 'FANCY CITY - PLOT NO. 99', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />	
+		
+
+   
+   
+   
+  
+   
+   
+   
+   
+	<area shape="poly" coords="1618,1386,1618,1280,1678,1280,1678,1387" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> ஜெகதீஸ்வரன், </b> <br> கைபேசி எண்  , <br> Document No. 1744/2026. ', TITLE, 'FANCY CITY - PLOT NO. 48', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	
+	<area shape="poly" coords="1495,1556,1494,1449,1571,1450,1567,1557" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> வி. கலா நந்தினி, </b> <br> கைபேசி எண்  , <br> Document No. 1325/2026. ', TITLE, 'FANCY CITY - PLOT NO. 50', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	
+	<area shape="poly" coords="1434,1557,1434,1449,1494,1448,1493,1556" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> வி. கலா நந்தினி, </b> <br> கைபேசி எண்  , <br> Document No. 1326/2026. ', TITLE, 'FANCY CITY - PLOT NO. 51', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	
+	<area shape="poly" coords="432,1557,432,1449,513,1450,512,1555" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> சந்தியா சகா, </b> <br> கைபேசி எண்  , <br> Document No. 1153/2026. ', TITLE, 'FANCY CITY - PLOT NO. 64', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	
+	<area shape="poly" coords="433,1664,432,1558,512,1557,513,1664" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> சந்தியா சகா, </b> <br> கைபேசி எண்  , <br> Document No. 1153/2026. ', TITLE, 'FANCY CITY - PLOT NO. 67', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	
+	<area shape="poly" coords="1127,1663,1125,1556,1187,1556,1187,1663" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> எபனேசர், </b> <br> கைபேசி எண்  , <br> Document No. 1425/2026. ', TITLE, 'FANCY CITY - PLOT NO. 75', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	
+	<area shape="poly" coords="1188,1663,1187,1557,1248,1556,1249,1663" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> ஜெபபாக்கியம், </b> <br> கைபேசி எண்  , <br> Document No. 1579/2026. ', TITLE, 'FANCY CITY - PLOT NO. 76', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	
+	<area shape="poly" coords="1249,1663,1249,1556,1310,1557,1309,1663" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> ரூபன் சா, </b> <br> கைபேசி எண்  , <br> Document No. 1581/2026. ', TITLE, 'FANCY CITY - PLOT NO. 77', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	
+	<area shape="poly" coords="1309,1663,1310,1556,1372,1557,1372,1665" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> யோவான், </b> <br> கைபேசி எண்  , <br> Document No. 1578/2026. ', TITLE, 'FANCY CITY - PLOT NO. 78', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	
+	<area shape="poly" coords="1372,1663,1371,1556,1432,1556,1432,1663" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> ஜெசுபாலன், </b> <br> கைபேசி எண்  , <br> Document No. 1580/2026. ', TITLE, 'FANCY CITY - PLOT NO. 79', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	
+	<area shape="poly" coords="1434,1663,1433,1559,1496,1558,1495,1663" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> வி. கலா நந்தினி, </b> <br> கைபேசி எண்  , <br> Document No. 1328/2026. ', TITLE, 'FANCY CITY - PLOT NO. 80', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	
+	<area shape="poly" coords="1494,1663,1495,1559,1570,1558,1567,1663" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> வி. கலா நந்தினி, </b> <br> கைபேசி எண்  , <br> Document No. 1329/2026. ', TITLE, 'FANCY CITY - PLOT NO. 81', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />
+	
+	<area shape="poly" coords="1003,1848,1003,1728,1046,1727,1047,1850" onMouseOver="Tip('<b> <u> Sale Deed:</u> <br> அ ஐய்யாதுரை, </b> <br> கைபேசி எண்  , <br> Document No. 1296/2026. ', TITLE, 'FANCY CITY - PLOT NO. 94', WIDTH, 330, SHADOW, false, FADEIN, 300, FADEOUT, 300, STICKY, -001, OFFSETX, -001, CLOSEBTN, true, CLICKCLOSE, false)" />		    
+	
+	
+   </map></p>
+      </div> 
+      <!-- end text div -->
+    </div> <!-- end content div -->
+  </div> <!-- end main div -->
+  <div id="footer"></div>
+</div> <!-- end container div -->
+
+</body></html>
